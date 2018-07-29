@@ -12,28 +12,31 @@
 
     .chart-container {
       width: 1480px;
-      height: 460px;
+      height: 660px;
       margin: auto;
-    }
-
-    .y-axis {
     }
 
     #tooltip {
       pointer-events: none;
-
     }
+
+    .x-axis .tick text {
+      font-size: 16px;
+    }
+    
+    .y-axis .tick text {
+      font-size: 14px;
+    }
+
 
     </style>
 
   </head>
-
   <body>
     
     <div class="chart-container">
       <svg class="chart"></svg>
     </div>
-
 
   <script>
 
@@ -42,22 +45,41 @@
                       .attr("id", "tooltip")
                       .attr("display", "none")
 
-    const margin = { left: 60, top: 30, right: 30, bottom: 40 },
+    const margin = { left: 80, top: 130, right: 30, bottom: 140 },
         width = 1480 - margin.left - margin.right,
-        height = 480 - margin.top - margin.bottom
+        height = 680 - margin.top - margin.bottom
 
     const xScale = d3.scaleBand() 
                      .range([0, width])
 
     const yScale = d3.scaleBand()
                      .range([height,0])
+       
+    const darkPurple = "#8e44ad",
+              purple = "#9b59b6",
+            darkBlue = "#2980b9",
+                blue = "#3498db",
+               green = "#1abc9c",
+                teal = "#abebc6",
+         lightOrange = "#f1c40f",
+              orange = "#f39c12",
+            lightRed = "#e67e22",
+                 red = "#d35400",
+             darkRed = "#a04000"
+
+    const colors = [ darkPurple, purple, darkBlue, blue, green, teal, lightOrange, orange, lightRed, red, darkRed] 
 
     const cScale = d3.scaleQuantile()
-                     .range(["darkblue","blue","lightblue", "beige","pink", "orangered","darkred"])
+                     .range(colors)
 
     const xAxis = d3.axisBottom(xScale)  
+                    .tickSizeOuter(0)
 
     const yAxis = d3.axisLeft(yScale)
+
+    const legendxScale = d3.scaleBand() 
+                     .range([0, 330])
+                     
 
     let chart = d3.select(".chart")
                   .attr("width", width + margin.left + margin.right)
@@ -70,7 +92,6 @@
     d3.json("./global-temperature.json")
       .then( function(jsonData) {
       // Process data
-      console.log(jsonData)
       return jsonData
     }).then( function(jsonData){
       // Draw data
@@ -87,14 +108,22 @@
       for (let i = 12; i > 0; i--)
         yDomain.push(i)
 
-      for (let i = 0; i < jsonData.monthlyVariance.length; i++)
-        cDomain.push(jsonData.monthlyVariance[i].variance)
+      for (let i = 0; i < jsonData.monthlyVariance.length; i++) {
+        cDomain.push((jsonData.baseTemperature + jsonData.monthlyVariance[i].variance))
+      }
 
       xScale.domain(xDomain)
       yScale.domain(yDomain)
       cScale.domain(d3.extent(cDomain))
+    
+      let interval = (d3.max(cDomain) - d3.min(cDomain)) / 11
 
-      console.log(d3.extent(cDomain))
+      legendDomain = []
+
+      for (let i = d3.min(cDomain); i < d3.max(cDomain); i = i + interval)
+        legendDomain.push(i)
+
+      legendxScale.domain(legendDomain)
 
       xAxis.tickValues(xScale.domain().filter(function(d,i) { return !(d % 10); }))
       yAxis.tickFormat(function(d) { return months[d]})
@@ -104,21 +133,54 @@
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
 
-      chart.append("g")
-        .attr("class", "y-axis")
-        .call(yAxis)
+      let legendWidth = 45
+
+      let legend = d3.select(".chart")
+        .append("g")
+          .attr("id", "legend")
+          .attr("transform", "translate(" + margin.left + "," + (height + margin.bottom + margin.top /2) + ")" )
+          .attr("width", width / 4 )
+          .attr("height", 20)
+
+      legend.append("g")
+        .append("text")
+        .text("Temperatures in degrees celcius")
+
+      legend.selectAll("legend rect")
+        .data([1.684].concat(cScale.quantiles()))
+        .enter().append("rect")
+          .attr("x", function(d,i) { return i * legendWidth })
+          .attr("y", 8)
+          .attr("height", 30)
+          .attr("fill", (d, i) => (colors[i]))
+          .attr("width", legendWidth)
+
+      legend.selectAll("legend .legend-label")
+        .data([1.684].concat(cScale.quantiles()))
+        .enter().append("text")
+          .attr("class", "legend-label")
+          .text( (d) => ( Math.round(d * 10) / 10) )
+          .attr("x", function(d,i) { console.log(d,i); return i * legendWidth; })
+          .attr("dx", "-0.75em")
+          .attr("y", 55)
+
 
       chart.selectAll(".cell")
         .data(jsonData.monthlyVariance)
         .enter().append("rect")
           .attr("x", (d) => xScale(d.year))
           .attr("y", (d) => yScale(d.month))
-          .attr("fill", (d) => ( cScale(d.variance)))
-          .attr("stroke", "black")
-          .attr("stroke-width", 0.25)
+          .attr("fill", (d) => ( cScale(jsonData.baseTemperature + d.variance)))
+          .attr("stroke", (d) => ( cScale(jsonData.baseTemperature + d.variance)))
+          //.attr("stroke-width", 0.25)
           .attr("width", xScale.bandwidth())
           .attr("height", yScale.bandwidth())
-          
+
+      chart.append("g")
+        .attr("class", "y-axis")
+        .attr("transform", "translate(-1,0)")
+        .call(yAxis)
+    
             
     }).catch( function(error) {
         console.log("Graphing error: ", error.message)
