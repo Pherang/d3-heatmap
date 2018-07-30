@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <script src="./d3.js"></script>
+    <script src="./bundle.js"></script>
     
     <style>
 
@@ -26,8 +27,14 @@
 
     #tooltip {
       position: absolute;
+      width: 155px;
+      height: 80px;
+      padding: 10px;
+      font-family: sans-serif;
+      border-radius: 5px;
+      box-shadow: none;
       pointer-events: none;
-      background-color: "grey";
+
     }
 
     .x-axis .tick text {
@@ -39,7 +46,7 @@
     }
 
     .cell:hover {
-      fill: red;
+      fill: white;
     }
 
 
@@ -83,7 +90,11 @@
                  red = "#d35400",
              darkRed = "#a04000"
 
+    const lightgrey = "#d0d3d4" // for tooltip
+
     const colors = [ darkPurple, purple, darkBlue, blue, green, teal, lightOrange, orange, lightRed, red, darkRed] 
+
+    const celciusSymbol = "&#x2103;"
 
     const cScale = d3.scaleQuantile()
                      .range(colors)
@@ -136,7 +147,7 @@
         .append("text")
           .attr("id", "subtitle")
           .attr("transform", "translate(0" + "," + 26  + ")" )
-          .html("Years 1753-2015. Base temperature: " + "8.66" + "&#x2103;" )
+          .html("Years 1753-2015. Base temperature: " + "8.66" + celciusSymbol)
 
 
       chart.append("g")
@@ -204,29 +215,34 @@
         console.log("Graphing error: ", error.message)
     })
 
-    function showTip(data) {
+    function updateTip(data) {
+
       tooltip
         .style("left", (d3.event.pageX + 15) + "px")
         .style("top", (d3.event.pageY - 20) + "px")
-        .style("width", 200)
-        .style("height", 100)
-        .style("background-color", "lightgrey")
+        .style("background-color", lightgrey)
         .style("display", "inline")
+        .style("box-shadow", "3px 3px 5px grey")
         .html( data.year + "<br>" +
           months[data.month] + "<br>" +
-          Math.round((8.66 + data.variance) * 100) / 100 + "<br>" +
-          +data.variance  
+          "Temperature: " + Math.round((8.66 + data.variance) * 100) / 100 + celciusSymbol + "<br>" +
+          "Variance: " + data.variance + celciusSymbol  
         )
+
     }
 
-    function updateTip() {
+    function showTip() {
+      tooltip
+        .transition()
+        .style("opacity", 1)
     
     }
 
     function hideTip() {
       tooltip
-        .attr("display","none")
-        .text("")
+        .transition()
+        .duration(300)
+        .style("opacity","0")
     }
 
     console.log("End")
