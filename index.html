@@ -160,9 +160,9 @@
 
       d3.select(".chart")
         .append("g")
-          .attr("transform", "translate(" + width * .87 + "," + (height + margin.top -10 + margin.bottom) + ")" )
+          .attr("transform", "translate(" + width * .98 + "," + (height + margin.top -10 + margin.bottom) + ")" )
         .append("text")
-          .text("Source: Global-temperatures.json")
+           .html("Source: " + "<a href='https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json'>FCC</a>")
 
 
       chart.append("g")
