@@ -21,7 +21,7 @@
       font-size: 22px;
     }
 
-    #subtitle {
+    #description {
       font-size: 18px;
     }
 
@@ -37,11 +37,11 @@
 
     }
 
-    .x-axis .tick text {
+    #x-axis .tick text {
       font-size: 16px;
     }
     
-    .y-axis .tick text {
+    #y-axis .tick text {
       font-size: 14px;
     }
 
@@ -74,9 +74,9 @@
                      .range([0, width])
 
     const yScale = d3.scaleBand()
-                     .range([height,0])
+                     .range([0,height])
 
-    const months = ["none", "January", "February", "March","April","May","June","July","August","September","October","November","December"]
+    const months = ["January", "February", "March","April","May","June","July","August","September","October","November","December"]
  
     const darkPurple = "#8e44ad",
               purple = "#9b59b6",
@@ -111,7 +111,15 @@
                     .attr("class", "graph")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")" )
 
-    d3.json("./global-temperature.json").then( function(jsonData){
+      d3.json("./global-temperature.json").then ( function(jsonData) {
+        
+        // Offset month by -1 to lineup with index=0
+        for (i = 0; i < jsonData.monthlyVariance.length; i++) {
+          jsonData.monthlyVariance[i].month = (jsonData.monthlyVariance[i].month - 1)
+        }
+
+        return jsonData
+      }).then( function(jsonData){
       // Graph data
 
       
@@ -122,7 +130,7 @@
       for (let i = 1753; i < 2016; i++)
         xDomain.push(i)
 
-      for (let i = 12; i > 0; i--)
+      for (let i = 0; i < 12; i++)
         yDomain.push(i)
 
       for (let i = 0; i < jsonData.monthlyVariance.length; i++) {
@@ -134,7 +142,8 @@
       cScale.domain(d3.extent(cDomain))
     
       xAxis.tickValues(xScale.domain().filter( function(d,i) { return !(d % 10); }))
-      yAxis.tickFormat(function(d) { return months[d]})
+
+      yAxis.tickFormat(function(d) { return months[(d)]})
 
       d3.select(".chart")
         .append("g")
@@ -145,13 +154,19 @@
 
       d3.select("#title")
         .append("text")
-          .attr("id", "subtitle")
+          .attr("id", "description")
           .attr("transform", "translate(0" + "," + 26  + ")" )
           .html("Years 1753-2015. Base temperature: " + "8.66" + celciusSymbol)
 
+      d3.select(".chart")
+        .append("g")
+          .attr("transform", "translate(" + width * .87 + "," + (height + margin.top -10 + margin.bottom) + ")" )
+        .append("text")
+          .text("Source: Global-temperatures.json")
+
 
       chart.append("g")
-        .attr("class", "x-axis")
+        .attr("id", "x-axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
 
@@ -188,7 +203,7 @@
         .enter().append("text")
           .attr("class", "legend-label")
           .text( (d) => ( Math.round(d * 10) / 10) )
-          .attr("x", function(d,i) { console.log(d,i); return i * legendWidth; })
+          .attr("x", function(d,i) { return i * legendWidth; })
           .attr("dx", "-0.75em")
           .attr("y", 55)
 
@@ -202,12 +217,15 @@
           .attr("stroke", (d) => ( cScale(jsonData.baseTemperature + d.variance)))
           .attr("width", xScale.bandwidth())
           .attr("height", yScale.bandwidth())
+          .attr("data-year", (d) => d.year)
+          .attr("data-month", (d) => ((d.month)))
+          .attr("data-temp", (d) => (+jsonData.baseTemperature + d.variance))
           .on("mouseover", showTip)
           .on("mousemove", updateTip)
           .on("mouseout", hideTip)
 
       chart.append("g")
-        .attr("class", "y-axis")
+        .attr("id", "y-axis")
         .attr("transform", "translate(-1,0)")
         .call(yAxis)
             
@@ -218,13 +236,14 @@
     function updateTip(data) {
 
       tooltip
+        .attr("data-year", data.year)
         .style("left", (d3.event.pageX + 15) + "px")
         .style("top", (d3.event.pageY - 20) + "px")
         .style("background-color", lightgrey)
         .style("display", "inline")
         .style("box-shadow", "3px 3px 5px grey")
         .html( data.year + "<br>" +
-          months[data.month] + "<br>" +
+          months[(data.month)] + "<br>" +
           "Temperature: " + Math.round((8.66 + data.variance) * 100) / 100 + celciusSymbol + "<br>" +
           "Variance: " + data.variance + celciusSymbol  
         )
