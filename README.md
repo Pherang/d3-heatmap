@@ -2,6 +2,8 @@
 
 It's a heatmap of heat.
 
+It's online at https://warming.surge.sh
+
 Created with D3.js.
 
 Temperature colors were scaled with scaleQuantile so that temps were divided into 11 quantiles associated with 11 colors.

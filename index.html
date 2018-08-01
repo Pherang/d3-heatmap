@@ -4,33 +4,35 @@
     <meta charset="utf-8">
     <script src="./d3.min.js"></script>
     <script src="./bundle.js"></script>
-    
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700,800" rel="stylesheet">
     <style>
 
     .chart {
-      font-family: sans-serif;
+      font-family: 'Montserrat', sans-serif;
     }
 
     .chart-container {
-      width: 1480px;
+      width: 1490px;
       height: 660px;
       margin: auto;
     }
 
     #title {
       font-size: 22px;
+      font-weight: 700; 
     }
 
     #description {
       font-size: 18px;
+      font-weight: 400;
     }
 
     #tooltip {
       position: absolute;
-      width: 155px;
-      height: 80px;
+      width: 170px;
+      height: 85px;
       padding: 10px;
-      font-family: sans-serif;
+      font-family: 'Montserrat', sans-serif;
       border-radius: 5px;
       box-shadow: none;
       pointer-events: none;
@@ -39,10 +41,12 @@
 
     #x-axis .tick text {
       font-size: 16px;
+      font-family: 'Montserrat', sans-serif;
     }
     
     #y-axis .tick text {
       font-size: 14px;
+      font-family: 'Montserrat', sans-serif;
     }
 
     .cell:hover {
@@ -66,8 +70,8 @@
                       .attr("id", "tooltip")
                       .attr("display", "none")
 
-    const margin = { left: 80, top: 130, right: 30, bottom: 140 },
-        width = 1480 - margin.left - margin.right,
+    const margin = { left: 90, top: 130, right: 30, bottom: 140 },
+        width = 1490 - margin.left - margin.right,
         height = 680 - margin.top - margin.bottom
 
     const xScale = d3.scaleBand() 
@@ -237,11 +241,9 @@
       tooltip
         .attr("data-year", data.year)
         .style("left", () => ( 
-          d3.event.pageX > width * .9 ? ((d3.event.pageX - 185) + "px") : ((d3.event.pageX + 15) + "px")
+          d3.event.pageX > width * .9 ? ((d3.event.pageX - 200) + "px") : ((d3.event.pageX + 15) + "px")
         
         ))
-
-
         .style("top", (d3.event.pageY - 20) + "px")
         .style("background-color", lightgrey)
         .style("display", "inline")
